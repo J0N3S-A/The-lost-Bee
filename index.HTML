@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shadow Butterfly: Living Tactician 🧠</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        body {
+            background-color: #010101;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            transition: transform 0.05s;
+        }
+
+        #light-mask {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle 110px at 0px 0px, transparent 100%, rgba(0,0,0,1) 100%);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #butterfly-wrapper {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            z-index: 5;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            filter: drop-shadow(0 0 8px #00ffff);
+            transition: transform 0.1s ease-out;
+        }
+        .wing-flap { animation: flap 0.25s infinite alternate ease-in-out; display: inline-block; }
+        @keyframes flap { 0% { transform: scaleX(1); } 100% { transform: scaleX(0.3); } }
+
+        #shield-halo {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            border: 3px solid #00ffcc;
+            border-radius: 50%;
+            display: none;
+            box-shadow: 0 0 15px #00ffcc;
+            animation: rotateHalo 2s infinite linear;
+        }
+        @keyframes rotateHalo { 100% { transform: rotate(360deg); } }
+
+        #hunter-bug {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            font-size: 32px;
+            z-index: 6;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            filter: drop-shadow(0 0 12px #ff3333);
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .wall {
+            position: absolute;
+            background: #0a0a0a;
+            border: 1.5px solid #151515;
+            border-radius: 6px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.9);
+        }
+        .wall.reveal {
+            background: #ffd700 !important;
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
+        }
+        .ghost-wall {
+            border-style: dashed;
+            opacity: 0.6;
+        }
+
+        /* ✨ جعل الوردة أكثر حيوية ودوران ونبض نيون */
+        #flower {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            font-size: 40px;
+            z-index: 4;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 15px #ff69b4);
+            animation: flowerLife 2s infinite ease-in-out alternate;
+        }
+        @keyframes flowerLife {
+            0% { transform: translate(-50%, -50%) scale(0.9) rotate(0deg); filter: drop-shadow(0 0 10px #ff69b4); }
+            100% { transform: translate(-50%, -50%) scale(1.15) rotate(15deg); filter: drop-shadow(0 0 22px #ff1493); }
+        }
+
+        /* ✨ حركة عائمة وتوهج حي لجزيئات اللقاح */
+        .pollen {
+            position: absolute;
+            width: 10px; height: 10px;
+            background: #ffd700;
+            border-radius: 50%;
+            z-index: 3;
+            box-shadow: 0 0 8px #ffd700;
+            transform: translate(-50%, -50%);
+            animation: pollenFloat 1.5s infinite alternate ease-in-out;
+        }
+        .super-pollen {
+            width: 16px; height: 16px;
+            background: #ff00ff;
+            box-shadow: 0 0 15px #ff00ff;
+            animation: pollenFloat 1.2s infinite alternate ease-in-out-back;
+        }
+        @keyframes pollenFloat {
+            0% { opacity: 0.7; transform: translate(-50%, -50%) translateY(0px) scale(0.9); }
+            100% { opacity: 1; transform: translate(-50%, -50%) translateY(-6px) scale(1.1); }
+        }
+
+        /* ✨ جعل صناديق القدرات تنبض وتومض بألوان النيون */
+        .item {
+            position: absolute;
+            width: 36px; height: 36px;
+            z-index: 4;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center; justify-content: center;
+            font-size: 26px;
+            animation: itemLife 0.8s infinite alternate ease-in-out;
+        }
+        @keyframes itemLife {
+            0% { transform: translate(-50%, -50%) scale(0.85); filter: drop-shadow(0 0 5px #fff); }
+            100% { transform: translate(-50%, -50%) scale(1.2); filter: drop-shadow(0 0 15px #ffd700); }
+        }
+
+        .toast-text {
+            position: absolute;
+            z-index: 14;
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 20px;
+            text-shadow: 0 0 8px #000;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: flyUp 1s forwards ease-out;
+        }
+        @keyframes flyUp { 0% { opacity: 1; transform: translate(-50%, -50%) translateY(0); } 100% { opacity: 0; transform: translate(-50%, -50%) translateY(-60px); } }
+
+        .hud-corner {
+            position: absolute;
+            z-index: 15;
+            font-weight: 900;
+            font-size: 11px;
+            letter-spacing: 1px;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.7);
+            text-shadow: 1px 1px 4px #000, -1px -1px 4px #000;
+        }
+        #hud-top-left { top: 12px; left: 12px; display: flex; flex-direction: column; gap: 2px; }
+        #hud-top-right { top: 12px; right: 12px; text-align: right; display: flex; flex-direction: column; gap: 2px; }
+        .gold-txt { color: #ffd700 !important; }
+        .red-txt { color: #ff3333 !important; }
+
+        #danger-bar {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 4px;
+            background: rgba(0,0,0,0.4); z-index: 15;
+        }
+        #danger-fill {
+            width: 0%; height: 100%;
+            background: linear-gradient(to right, #ffd700, #ff3333);
+            transition: width 0.1s linear;
+        }
+
+        .radar-ripple {
+            position: absolute;
+            border: 2px solid rgba(0, 255, 255, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9;
+            transform: translate(-50%, -50%);
+            animation: rippleEffect 0.8s forwards ease-out;
+        }
+        @keyframes rippleEffect { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 500px; height: 500px; opacity: 0; } }
+
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 20;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal.active { opacity: 1; pointer-events: auto; }
+        .modal h1 { color: #ffd700; margin-bottom: 10px; font-size: 32px; text-shadow: 0 0 10px #ffd700; }
+        .modal p { color: #ccc; margin-bottom: 20px; font-size: 16px; text-align: center; line-height: 1.5; }
+        .modal button {
+            background: #ffd700; color: #000; border: none; padding: 10px 30px;
+            font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer;
+            box-shadow: 0 0 15px #ffd700;
+        }
+
+        /* ✨ شاشة الإعلان عن اللفل الجديد والانتقال الرائع */
+        #level-announcer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 25;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+        }
+        #level-announcer.active { opacity: 1; }
+        #announce-text {
+            font-size: 36px; font-weight: 900; color: #ffd700;
+            letter-spacing: 3px; text-shadow: 0 0 15px rgba(255,215,0,0.7);
+            transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #level-announcer.active #announce-text { transform: scale(1); }
+
+        /* ✨ شاشة العداد التنازلي السريع (3, 2, 1) قبل اللعب مباشرة */
+        #countdown-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 24;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; background: rgba(0,0,0,0.2);
+            display: none;
+        }
+        #countdown-text {
+            font-size: 90px; font-weight: 900; color: #00ffff;
+            text-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff;
+            animation: pulseCount 0.33s infinite alternate ease-in-out;
+        }
+        @keyframes pulseCount { 0% { transform: scale(0.7); } 100% { transform: scale(1.1); } }
+
+        .trail-particle {
+            position: absolute;
+            width: 14px; height: 14px; 
+            background: rgba(0, 255, 255, 0.4);
+            border-radius: 50%; 
+            pointer-events: none; 
+            z-index: 2;
+            transform: translate(-50%, -50%);
+            filter: blur(4px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hud-corner" id="hud-top-left">
+        <div>SCORE: <span id="score-val" class="gold-txt">0</span> <span id="combo-ui" style="color:#ff00ff; margin-left:5px;"></span></div>
+        <div>HIGH: <span id="hi-val">0</span></div>
+        <div>RANK: <span id="rank-val" class="gold-txt">MASTER TACTICIAN 🧠</span></div>
+    </div>
+
+    <div class="hud-corner" id="hud-top-right">
+        <div id="lives-container">❤️❤️❤️</div>
+        <div>LEVEL: <span id="level-val" class="gold-txt">1</span></div>
+        <div id="enrage-ui" class="red-txt" style="display:none; font-weight:bold; animation:blink 0.4s infinite alternate;">⚠️ SCORPION ENRAGED!</div>
+    </div>
+
+    <div id="danger-bar"><div id="danger-fill"></div></div>
+
+    <div id="game-container">
+        <div id="light-mask"></div>
+        <div id="butterfly-wrapper">
+            <div id="shield-halo"></div>
+            <span class="wing-flap">🦋</span>
+        </div>
+        <div id="compass"></div>
+        <div id="hunter-bug">🦂</div>
+        <div id="flower">🌸</div>
+        
+        <div id="walls-group"></div>
+        <div id="pollen-group"></div>
+        <div id="items-group"></div>
+    </div>
+
+    <div id="level-announcer">
+        <div id="announce-text">ENTERING LEVEL 1</div>
+    </div>
+
+    <div id="countdown-overlay">
+        <div id="countdown-text">3</div>
+    </div>
+
+    <div id="gameover-modal" class="modal">
+        <h1 id="modal-title">GAME OVER</h1>
+        <p id="modal-desc"></p>
+        <button onclick="restartGame()">PLAY AGAIN</button>
+    </div>
+
+    <script>
+        const container = document.getElementById('game-container');
+        const mask = document.getElementById('light-mask');
+        const butterfly = document.getElementById('butterfly-wrapper');
+        const shieldHalo = document.getElementById('shield-halo');
+        const hunter = document.getElementById('hunter-bug');
+        const flower = document.getElementById('flower');
+        const compass = document.getElementById('compass');
+        
+        const wallsGroup = document.getElementById('walls-group');
+        const pollenGroup = document.getElementById('pollen-group');
+        const itemsGroup = document.getElementById('items-group');
+        
+        const scoreVal = document.getElementById('score-val');
+        const hiVal = document.getElementById('hi-val');
+        const levelVal = document.getElementById('level-val');
+        const rankVal = document.getElementById('rank-val');
+        const comboUi = document.getElementById('combo-ui');
+        const enrageUi = document.getElementById('enrage-ui');
+        const livesContainer = document.getElementById('lives-container');
+        const dangerFill = document.getElementById('danger-fill');
+        const gameOverModal = document.getElementById('gameover-modal');
+        
+        const levelAnnouncer = document.getElementById('level-announcer');
+        const announceText = document.getElementById('announce-text');
+        const countdownOverlay = document.getElementById('countdown-overlay');
+        const countdownText = document.getElementById('countdown-text');
+
+        let bX = 50, bY = 50, targetX = 50, targetY = 50;
+        let hX = 300, hY = 300, flX = 500, flY = 500;
+        
+        let score = 0, level = 1, lives = 3;
+        let highscore = localStorage.getItem('bt_highscore_tactical') || 0;
+        hiVal.innerText = highscore;
+
+        let screenW = window.innerWidth, screenH = window.innerHeight;
+        let bugVisible = false, isFrozen = false, freezeTimer = 0;
+        
+        let speedBoost = 1.0; 
+        let speedTimer = 0; 
+        let hasShield = false;
+        let matrixTime = false, matrixTimer = 0, isInvisible = false, invisibleTimer = 0;
+        let magnetActive = false, magnetTimer = 0;
+        
+        let lastTap = 0, combo = 0, comboTimer = 0, gameTime = 0, levelTime = 0;
+        let trailColor = 'rgba(0, 255, 255, 0.45)';
+        
+        let activeWallsData = [];
+        let levelTransitionGrace = false;
+        let countdownActive = false; // التحكم في تجميد اللعبة أثناء العداد التنازلي
+
+        const randRange = (min, max) => Math.random() * (max - min) + min;
+        const getDistance = (x1, y1, x2, y2) => Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
+
+        function isInsideAnyWall(x, y, padding = 20) {
+            for (let wall of activeWallsData) {
+                if (x + padding > wall.left && x - padding < wall.right &&
+                    y + padding > wall.top && y - padding < wall.bottom) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // دالة مخصصة لإدارة المراحل وعرض العدادات المطلوبة بشكل مثالي
+        function advanceToNextLevel(isFirstStart = false) {
+            levelTransitionGrace = true;
+            countdownActive = true;
+
+            if (!isFirstStart) {
+                // 1. إظهار لافتة المرحلة لمدة ثانية واحدة كاملة
+                announceText.innerText = `ENTERING LEVEL ${level}`;
+                levelAnnouncer.classList.add('active');
+                
+                setTimeout(() => {
+                    levelAnnouncer.classList.remove('active');
+                    startCountdownSequence();
+                }, 1000);
+            } else {
+                startCountdownSequence();
+            }
+        }
+
+        // 2. تشغيل العداد التنازلي السريع (3, 2, 1) خلال ثانية واحدة إجمالية
+        function startCountdownSequence() {
+            initLevelLayout(); // بناء الكود والرسبون في الخلفية
+            countdownOverlay.style.display = 'flex';
+            
+            // 3 في أول 330 ملي ثانية
+            countdownText.innerText = "3";
+            
+            setTimeout(() => {
+                // 2 في الـ 330 ملي ثانية التالية
+                countdownText.innerText = "2";
+            }, 330);
+
+            setTimeout(() => {
+                // 1 في الـ 330 ملي ثانية الأخيرة
+                countdownText.innerText = "1";
+            }, 660);
+
+            setTimeout(() => {
+                // إغلاق العداد وفك تجميد الحركة تماماً عند انتهاء الثانية
+                countdownOverlay.style.display = 'none';
+                countdownActive = false;
+                levelTransitionGrace = false;
+            }, 1000);
+        }
+
+        function initLevelLayout() {
+            wallsGroup.innerHTML = ''; pollenGroup.innerHTML = ''; itemsGroup.innerHTML = '';
+            activeWallsData = [];
+            
+            combo = 0; isFrozen = false; speedBoost = 1.0; hasShield = false; shieldHalo.style.display = 'none';
+            matrixTime = false; isInvisible = false; magnetActive = false; levelTime = 0;
+            enrageUi.style.display = 'none'; hunter.innerText = '🦂'; hunter.style.filter = 'drop-shadow(0 0 12px #ff3333)';
+            trailColor = 'rgba(0, 255, 255, 0.45)';
+            
+            const numWalls = Math.floor((screenW * screenH) / 24000) + (level * 2);
+            for (let i = 0; i < numWalls; i++) {
+                const wall = document.createElement('div');
+                const isGhost = Math.random() > 0.85; 
+                wall.className = isGhost ? 'wall ghost-wall' : 'wall';
+                
+                const isVert = Math.random() > 0.5;
+                const w = isVert ? 45 : randRange(100, 240);
+                const h = isVert ? randRange(100, 240) : 45;
+                const x = randRange(40, screenW - w - 40);
+                const y = randRange(40, screenH - h - 40);
+                
+                wall.style.width = w + 'px'; wall.style.height = h + 'px';
+                wall.style.left = x + 'px'; wall.style.top = y + 'px';
+                wallsGroup.appendChild(wall);
+
+                activeWallsData.push({
+                    left: x, top: y, right: x + w, bottom: y + h, isGhost: isGhost
+                });
+            }
+
+            let maxAttempts = 200;
+            do {
+                bX = randRange(60, screenW - 60);
+                bY = randRange(60, screenH - 60);
+                maxAttempts--;
+            } while (isInsideAnyWall(bX, bY, 25) && maxAttempts > 0);
+            
+            targetX = bX; targetY = bY;
+            butterfly.style.left = bX + 'px'; butterfly.style.top = bY + 'px';
+
+            maxAttempts = 200;
+            do {
+                flX = randRange(70, screenW - 70);
+                flY = randRange(70, screenH - 70);
+                maxAttempts--;
+            } while ((isInsideAnyWall(flX, flY, 25) || getDistance(bX, bY, flX, flY) < Math.min(screenW, screenH) * 0.65) && maxAttempts > 0);
+            flower.style.left = flX + 'px'; flower.style.top = flY + 'px';
+
+            maxAttempts = 200;
+            do {
+                hX = randRange(60, screenW - 60);
+                hY = randRange(60, screenH - 60);
+                maxAttempts--;
+            } while ((isInsideAnyWall(hX, hY, 20) || getDistance(bX, bY, hX, hY) < 260 || getDistance(flX, flY, hX, hY) < 150) && maxAttempts > 0);
+            hunter.style.left = hX + 'px'; hunter.style.top = hY + 'px';
+
+            for (let i = 0; i < 15; i++) { createPollen(Math.random() > 0.85); }
+            createSpecialItem();
+        }
+
+        function createPollen(isSuper = false) {
+            let pX, pY;
+            do { pX = randRange(40, screenW - 40); pY = randRange(40, screenH - 40); } while (isInsideAnyWall(pX, pY, 10));
+            const pol = document.createElement('div');
+            pol.className = isSuper ? 'pollen super-pollen' : 'pollen';
+            if(isSuper) pol.dataset.super = "true";
+            pol.style.left = pX + 'px'; pol.style.top = pY + 'px';
+            pollenGroup.appendChild(pol);
+        }
+
+        function createSpecialItem() {
+            let iX, iY;
+            do { iX = randRange(80, screenW - 80); iY = randRange(80, screenH - 80); } while (isInsideAnyWall(iX, iY, 15));
+            const item = document.createElement('div');
+            item.className = 'item';
+            const pool = ['❄️', '⚡', '🛡️', '🧲', '💣', '⏳', '💨'];
+            const chosen = pool[Math.floor(Math.random() * pool.length)];
+            item.innerText = chosen; item.dataset.type = chosen;
+            item.style.left = iX + 'px'; item.style.top = iY + 'px';
+            itemsGroup.appendChild(item);
+        }
+
+        function handleMove(e) {
+            if (levelTransitionGrace || countdownActive) return;
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            targetX = clientX; targetY = clientY;
+        }
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove, { passive: false });
+        window.addEventListener('touchstart', (e) => {
+            if (levelTransitionGrace || countdownActive) return;
+            let currentTime = new Date().getTime();
+            if (currentTime - lastTap < 250 && currentTime - lastTap > 0) triggerRadarRipple();
+            lastTap = currentTime;
+            handleMove(e);
+        });
+
+        function triggerRadarRipple() {
+            const ripple = document.createElement('div');
+            ripple.className = 'radar-ripple';
+            ripple.style.left = bX + 'px'; ripple.style.top = bY + 'px';
+            container.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 800);
+
+            document.querySelectorAll('.wall').forEach(w => {
+                w.classList.add('reveal');
+                setTimeout(() => w.classList.remove('reveal'), 1000);
+            });
+        }
+        window.addEventListener('keydown', (e) => { if (e.key === ' ') triggerRadarRipple(); });
+
+        function showToast(text, x, y) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-text';
+            toast.innerText = text;
+            toast.style.left = x + 'px'; toast.style.top = y + 'px';
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 1000);
+        }
+
+        function triggerScreenShake() {
+            container.style.transform = `translate(${randRange(-5, 5)}px, ${randRange(-5, 5)}px)`;
+            setTimeout(() => container.style.transform = 'translate(0px, 0px)', 50);
+        }
+
+        setInterval(() => {
+            if (isFrozen || matrixTime || countdownActive) return;
+            bugVisible = true; hunter.style.opacity = '1';
+            setTimeout(() => {
+                if (isFrozen || matrixTime || countdownActive) return;
+                bugVisible = false; hunter.style.opacity = '0';
+            }, 1000);
+        }, 1500);
+
+        function checkWallCollision(nextX, nextY) {
+            if (levelTransitionGrace || countdownActive) return false; 
+            const radius = 13;
+            const walls = document.querySelectorAll('.wall');
+            let idx = 0;
+            for (let wall of activeWallsData) {
+                let domWall = walls[idx++];
+                if (wall.isGhost && domWall && domWall.style.display === 'none') continue;
+
+                if (nextX + radius > wall.left && nextX - radius < wall.right &&
+                    nextY + radius > wall.top && nextY - radius < wall.bottom) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function updateRank() {
+            if (score < 300) rankVal.innerText = 'TACTICAL NOVICE 🧠';
+            else if (score < 800) rankVal.innerText = 'SHADOW PLANNER ⚡';
+            else if (score < 2000) rankVal.innerText = 'GRAND STRATEGIST 👑';
+            else rankVal.innerText = 'MYTHIC MIND 🌌';
+        }
+
+        function spawnTrail(x, y) {
+            const p = document.createElement('div');
+            p.className = 'trail-particle';
+            p.style.backgroundColor = trailColor;
+            p.style.left = x + 'px'; p.style.top = y + 'px';
+            container.appendChild(p);
+            
+            setTimeout(() => {
+                p.style.opacity = '0';
+                p.style.transform = 'translate(-50%, -50%) scale(0.3)';
+            }, 50);
+            
+            setTimeout(() => p.remove(), 500);
+        }
+
+        function update() {
+            // تجميد الدورة البرمجية بالكامل أثناء العداد التنازلي لإبقاء اللعبة ثابتة ومدروسة
+            if (countdownActive) {
+                requestAnimationFrame(update);
+                return;
+            }
+
+            gameTime++; levelTime++;
+            
+            if (gameTime % 2 === 0) spawnTrail(bX, bY);
+
+            if (gameTime % 180 === 0) {
+                document.querySelectorAll('.ghost-wall').forEach(gw => {
+                    gw.style.display = (gw.style.display === 'none') ? 'block' : 'none';
+                });
+            }
+
+            if (isFrozen && --freezeTimer <= 0) { isFrozen = false; hunter.innerText = '🦂'; }
+            if (speedBoost > 1.0 && --speedTimer <= 0) { speedBoost = 1.0; trailColor = 'rgba(0, 255, 255, 0.45)'; }
+            if (matrixTime && --matrixTimer <= 0) { matrixTime = false; hunter.style.filter = 'drop-shadow(0 0 12px #ff3333)'; }
+            if (isInvisible && --invisibleTimer <= 0) { invisibleTimer = false; butterfly.style.opacity = '1'; }
+            if (magnetActive && --magnetTimer <= 0) magnetActive = false;
+            if (comboTimer > 0 && --comboTimer <= 0) { combo = 0; comboUi.innerText = ''; }
+
+            let dx = targetX - bX, dy = targetY - bY;
+            
+            let currentSpeed = 0.06 * speedBoost; 
+            let stepX = dx * currentSpeed, stepY = dy * currentSpeed;
+            
+            if (!checkWallCollision(bX + stepX, bY)) bX += stepX;
+            if (!checkWallCollision(bX, bY + stepY)) bY += stepY;
+
+            butterfly.style.left = bX + 'px'; butterfly.style.top = bY + 'px';
+            
+            if (Math.abs(dx) > 1) {
+                let tilt = Math.min(Math.max(dx * 0.05, -15), 15);
+                butterfly.style.transform = `translate(-50%, -50%) scaleX(${dx > 0 ? 1 : -1}) rotate(${tilt}deg)`;
+            }
+
+            mask.style.background = `radial-gradient(circle 110px at ${bX}px ${bY}px, transparent 100%, rgba(0,0,0,0.99) 100%)`;
+
+            let hDx = bX - hX, hDy = bY - hY;
+            let dist = getDistance(bX, bY, hX, hY);
+            let isEnraged = levelTime > 1500;
+
+            if (isEnraged) {
+                enrageUi.style.display = 'block';
+                hunter.style.filter = 'drop-shadow(0 0 15px #ff0000) saturate(2)';
+            }
+
+            if (!isFrozen && !isInvisible && dist > 5) {
+                let baseSpeed = 0.65 + (level * 0.08); 
+                if (matrixTime) baseSpeed *= 0.4;
+                if (isEnraged) baseSpeed *= 1.6;
+                
+                let wave = Math.sin(gameTime * 0.05) * 1.0; 
+                hX += (hDx / dist) * baseSpeed + (hDy / dist) * wave;
+                hY += (hDy / dist) * baseSpeed - (hDx / dist) * wave;
+                hunter.style.left = hX + 'px'; hunter.style.top = hY + 'px';
+            }
+
+            if (dist < 50 && !bugVisible && !isFrozen && gameTime % 30 === 0) {
+                score += 15; scoreVal.innerText = score; showToast("+15 Risk Bonus! 🔥", bX, bY);
+            }
+
+            let dangerPercent = Math.max(0, 100 - (dist / 3.2));
+            dangerFill.style.width = dangerPercent + '%';
+
+            if (magnetActive) {
+                document.querySelectorAll('.pollen').forEach(p => {
+                    let pX = parseFloat(p.style.left), pY = parseFloat(p.style.top);
+                    let pDist = getDistance(bX, bY, pX, pY);
+                    if (pDist < 160) {
+                        p.style.left = (pX + (bX - pX) * 0.15) + 'px';
+                        p.style.top = (pY + (bY - pY) * 0.15) + 'px';
+                    }
+                });
+            }
+
+            if (dist > 100) {
+                compass.style.display = 'block'; compass.style.left = bX + 'px'; compass.style.top = (bY - 35) + 'px';
+                let angle = Math.atan2(flY - bY, flX - bX);
+                compass.style.transform = `translate(-50%, -50%) rotate(${angle + Math.PI/2}rad)`;
+            } else { compass.style.display = 'none'; }
+
+            checkGameplayEvents(dist);
+
+            if (lives > 0) requestAnimationFrame(update);
+        }
+
+        function checkGameplayEvents(distToBug) {
+            if (levelTransitionGrace || countdownActive) return; 
+            const bRect = butterfly.getBoundingClientRect();
+
+            if (distToBug < 25 && !isFrozen && !isInvisible) {
+                if (hasShield) {
+                    hasShield = false; shieldHalo.style.display = 'none';
+                    showToast("🛡️ Shield Broke!", bX, bY); triggerScreenShake();
+                    let maxAttempts = 100;
+                    do { hX = randRange(40, screenW-40); hY = randRange(40, screenH-40); maxAttempts--; } while(isInsideAnyWall(hX, hY) && maxAttempts > 0);
+                } else {
+                    lives--; triggerScreenShake(); updateLivesHUD();
+                    if (lives <= 0) { endGame(); return; }
+                    else {
+                        showToast("Stung! 💥", bX, bY);
+                        let maxAttempts = 100;
+                        do { hX = randRange(50, screenW - 50); hY = randRange(50, screenH - 50); maxAttempts--; } while ((isInsideAnyWall(hX, hY) || getDistance(bX, bY, hX, hY) < 250) && maxAttempts > 0);
+                    }
+                }
+            }
+
+            document.querySelectorAll('.pollen').forEach(p => {
+                const pRect = p.getBoundingClientRect();
+                if (bRect.left < pRect.right && bRect.right > pRect.left && bRect.top < pRect.bottom && bRect.bottom > pRect.top) {
+                    p.remove(); combo++; comboTimer = 130;
+                    let isSuper = p.dataset.super === "true";
+                    score += (isSuper ? 50 : 10) * combo;
+                    scoreVal.innerText = score;
+                    comboUi.innerText = `X${combo}`;
+                    showToast(isSuper ? `💎 Giant Pollen! +${50*combo}` : `+${10*combo}`, bX, bY);
+                    updateRank();
+                }
+            });
+
+            document.querySelectorAll('.item').forEach(item => {
+                const iRect = item.getBoundingClientRect();
+                if (bRect.left < iRect.right && bRect.right > iRect.left && bRect.top < iRect.bottom && bRect.bottom > iRect.top) {
+                    let type = item.dataset.type;
+                    item.remove();
+                    triggerScreenShake();
+                    
+                    if (type === '❄️') {
+                        isFrozen = true; freezeTimer = 240; hunter.innerText = '🧊'; hunter.style.opacity = '1';
+                        showToast("❄️ Scorpion Frozen!", bX, bY);
+                    } else if (type === '⚡') {
+                        speedBoost = 2.0; 
+                        speedTimer = 220; trailColor = '#ffd700'; 
+                        showToast("⚡ Speed Overdrive (2x)!", bX, bY);
+                    } else if (type === '🛡️') {
+                        hasShield = true; shieldHalo.style.display = 'block';
+                        showToast("🛡️ Shield Activated!", bX, bY);
+                    } else if (type === '🧲') {
+                        magnetActive = true; magnetTimer = 300;
+                        showToast("🧲 Pollen Magnet!", bX, bY);
+                    } else if (type === '💣') {
+                        showToast("💣 Flash Pulse Explosion!", bX, bY); triggerRadarRipple();
+                        let maxAttempts = 100;
+                        do { hX = randRange(60, screenW - 60); hY = randRange(60, screenH - 60); maxAttempts--; } while(isInsideAnyWall(hX, hY) && maxAttempts > 0);
+                    } else if (type === '⏳') {
+                        matrixTime = true; matrixTimer = 250; hunter.style.filter = 'drop-shadow(0 0 12px #8a2be2) blur(1px)';
+                        showToast("⏳ Matrix Time Slown!", bX, bY);
+                    } else if (type === '💨') {
+                        isInvisible = true; invisibleTimer = 200; butterfly.style.opacity = '0.4';
+                        showToast("💨 Ghost Camouflage!", bX, bY);
+                    }
+                    score += 40; scoreVal.innerText = score;
+                }
+            });
+
+            const fRect = flower.getBoundingClientRect();
+            if (bRect.left < fRect.right && bRect.right > fRect.left && bRect.top < fRect.bottom && bRect.bottom > fRect.top) {
+                level++; score += 200 * level;
+                scoreVal.innerText = score; levelVal.innerText = level;
+                updateRank();
+                advanceToNextLevel(false); // الانتقال عبر النظام الجديد المليء باللافتات والعدادات الكاشفة
+            }
+        }
+
+        function updateLivesHUD() { livesContainer.innerHTML = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives); }
+
+        function endGame() {
+            if (score > highscore) {
+                highscore = score; localStorage.setItem('bt_highscore_tactical', highscore);
+                hiVal.innerText = highscore; document.getElementById('modal-title').innerText = 'NEW RECORD! 👑';
+            } else { document.getElementById('modal-title').innerText = 'GAME OVER'; }
+            document.getElementById('modal-desc').innerText = `You dominated up to Level ${level}\nFinal Score: ${score}`;
+            gameOverModal.classList.add('active');
+        }
+
+        function restartGame() {
+            score = 0; level = 1; lives = 3; scoreVal.innerText = score; levelVal.innerText = level;
+            updateLivesHUD(); updateRank(); gameOverModal.classList.remove('active');
+            advanceToNextLevel(true); 
+        }
+
+        window.addEventListener('resize', () => { screenW = window.innerWidth; screenH = window.innerHeight; initLevelLayout(); });
+
+        // بدء اللعبة بالعداد التنازلي المباشر
+        advanceToNextLevel(true);
+        requestAnimationFrame(update);
+    </script>
+</body>
+</html>
