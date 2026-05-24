@@ -2,223 +2,302 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Lost Butterfly Puzzle 🦋</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Butterfly Echo: Infinite Maze 🦋</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
         }
         body {
-            background-color: #111;
+            background-color: #050505;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
-        }
-        #game-container {
             position: relative;
-            width: 600px;
-            height: 400px;
-            background: #050505;
-            border: 4px solid #ffd700; /* Regal Gold Border */
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
         }
-        /* Butterfly Flashlight (Limited Vision) */
+        
+        /* جعل منطقة اللعبة تغطي كامل الشاشة */
+        #game-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #020202;
+            overflow: hidden;
+        }
+
+        /* قناع الإضاءة الديناميكي حول الفراشة */
         #light-mask {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle 80px at 50px 50px, transparent 100%, rgba(0,0,0,0.98) 100%);
+            background: radial-gradient(circle 90px at 0px 0px, transparent 100%, rgba(0,0,0,0.99) 100%);
             pointer-events: none;
             z-index: 10;
         }
+
         #butterfly {
             position: absolute;
-            width: 30px;
-            height: 30px;
-            font-size: 26px;
-            left: 30px;
-            top: 180px;
-            transition: transform 0.1s;
+            width: 34px;
+            height: 34px;
+            font-size: 30px;
+            left: 20px;
+            top: 20px;
             z-index: 5;
-            line-height: 30px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
         }
+
+        /* الجدران المعقدة للمتاهة */
         .wall {
             position: absolute;
-            background: #222;
-            border: 1px solid #333;
-            transition: background 0.5s;
+            background: #111;
+            border: 1px solid #1a1a1a;
+            transition: background 0.4s, box-shadow 0.4s;
         }
-        /* When radar pulses, walls glow in gold */
         .wall.reveal {
             background: #ffd700 !important;
-            box-shadow: 0 0 10px #ffd700;
+            box-shadow: 0 0 15px #ffd700;
         }
+
         #flower {
             position: absolute;
             width: 40px;
             height: 40px;
-            font-size: 32px;
-            right: 30px;
-            top: 180px;
+            font-size: 34px;
+            right: 35px;
+            bottom: 35px;
             z-index: 4;
-            line-height: 40px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        #ui-panel {
-            margin-top: 15px;
-            text-align: center;
+
+        /* المخلوق الصغير المضيء الغامض */
+        #wisp {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            font-size: 20px;
+            z-index: 6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            filter: drop-shadow(0 0 8px #00ffff);
+            transition: opacity 0.2s ease-in-out;
         }
-        button {
-            background: #ffd700;
-            color: #111;
-            border: none;
-            padding: 10px 20px;
+
+        /* لوحة البيانات العلوية (الملكية) */
+        #ui-overlay {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 15;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 8px 20px;
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            display: flex;
+            gap: 20px;
             font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.2s;
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
-        button:hover {
-            background: #fff;
-        }
-        #info {
-            margin-top: 10px;
+        .hud-item {
+            color: #ffd700;
             font-size: 14px;
-            color: #aaa;
+            letter-spacing: 1px;
         }
+
+        /* أزرار اللمس الشفافة المخفية للتحكم اللمسي الكامل */
+        .touch-zone {
+            position: absolute;
+            z-index: 12;
+            background: rgba(255, 255, 255, 0.01); /* غير مرئية لكنها قابلة للمس */
+        }
+        #touch-up    { top: 0; left: 25%; width: 50%; height: 25%; }
+        #touch-down  { bottom: 0; left: 25%; width: 50%; height: 25%; }
+        #touch-left  { top: 25%; left: 0; width: 25%; height: 50%; }
+        #touch-right { top: 25%; right: 0; width: 25%; height: 50%; }
+        #touch-pulse { top: 25%; left: 25%; width: 50%; height: 50%; } /* النقر في المنتصف يطلق النبضة */
     </style>
 </head>
 <body>
 
-    <h2 style="color: #ffd700; margin-bottom: 10px;">Butterfly Echo Puzzle 🦋</h2>
-    
+    <div id="ui-overlay">
+        <div class="hud-item" id="level-hud">LEVEL: 1</div>
+        <div class="hud-item">TAP SIDES TO MOVE | CENTER TO ECHO</div>
+    </div>
+
     <div id="game-container">
         <div id="light-mask"></div>
         <div id="butterfly">🦋</div>
-        <div id="flower">🌺</div>
-        
-        <div class="wall" style="left: 150px; top: 0; width: 40px; height: 250px;"></div>
-        <div class="wall" style="left: 300px; top: 150px; width: 40px; height: 250px;"></div>
-        <div class="wall" style="left: 450px; top: 0; width: 40px; height: 250px;"></div>
+        <div id="wisp">✨</div>
+        <div id="flower">🌸</div>
+        <div id="walls-group"></div>
     </div>
 
-    <div id="ui-panel">
-        <button onclick="sonarPulse()">Trigger Echo Pulse (Spacebar)</button>
-        <div id="info">Use Arrow Keys (▲ ▼ ◄ ►) to navigate. Reach the flower without hitting hidden walls!</div>
-        <div id="level-status" style="margin-top: 5px; color: #ffd700; font-weight: bold;">Level: 1</div>
-    </div>
+    <div class="touch-zone" id="touch-up"></div>
+    <div class="touch-zone" id="touch-down"></div>
+    <div class="touch-zone" id="touch-left"></div>
+    <div class="touch-zone" id="touch-right"></div>
+    <div class="touch-zone" id="touch-pulse"></div>
 
     <script>
         const butterfly = document.getElementById('butterfly');
         const mask = document.getElementById('light-mask');
         const container = document.getElementById('game-container');
-        const walls = document.querySelectorAll('.wall');
+        const wallsGroup = document.getElementById('walls-group');
         const flower = document.getElementById('flower');
-        const levelStatus = document.getElementById('level-status');
+        const wisp = document.getElementById('wisp');
+        const levelHud = document.getElementById('level-hud');
 
-        let butterflyX = 30;
-        let butterflyY = 180;
+        let bX = 20, bY = 20;
         let level = 1;
+        let screenW = window.innerWidth;
+        let screenH = window.innerHeight;
+        const step = 20; // حجم خطوة الحركة
 
-        // Update lighting around the butterfly
-        function updateLighting() {
-            mask.style.background = `radial-gradient(circle 75px at ${butterflyX + 15}px ${butterflyY + 15}px, transparent 100%, rgba(0,0,0,0.97) 100%)`;
-        }
-
-        // Handle navigation and actions
-        window.addEventListener('keydown', (e) => {
-            const step = 15;
-            if (e.key === 'ArrowUp' && butterflyY > 0) butterflyY -= step;
-            if (e.key === 'ArrowDown' && butterflyY < 370) butterflyY += step;
-            if (e.key === 'ArrowLeft' && butterflyX > 0) { butterflyX -= step; butterfly.style.transform = 'scaleX(-1)'; }
-            if (e.key === 'ArrowRight' && butterflyX < 570) { butterflyX += step; butterfly.style.transform = 'scaleX(1)'; }
-            
-            if (e.key === ' ') {
-                e.preventDefault(); // Prevent page scrolling
-                sonarPulse();
-            }
-
-            butterfly.style.left = butterflyX + 'px';
-            butterfly.style.top = butterflyY + 'px';
-            
-            updateLighting();
-            checkCollisions();
+        // إعادة ضبط الأبعاد عند تغيير حجم الشاشة (دوران الهاتف)
+        window.addEventListener('resize', () => {
+            screenW = window.innerWidth;
+            screenH = window.innerHeight;
+            generateComplexMaze();
         });
 
-        // Echo Pulse feature: temporarily reveals the maze structure
+        function updateLighting() {
+            mask.style.background = `radial-gradient(circle 95px at ${bX + 17}px ${bY + 17}px, transparent 100%, rgba(0,0,0,0.99) 100%)`;
+        }
+
+        // بناء متاهة أكثر تعقيداً وأكبر حجماً بناءً على أبعاد الشاشة الحالية
+        function generateComplexMaze() {
+            wallsGroup.innerHTML = ''; // تنظيف المتاهة القديمة
+            
+            // تحديد مسار آمن للفراشة والزهرة أولاً حتى لا تنغلق المتاهة بالكامل
+            const numWalls = Math.floor((screenW * screenH) / 22000) + (level * 2); 
+            
+            for (let i = 0; i < numWalls; i++) {
+                const wall = document.createElement('div');
+                wall.className = 'wall';
+                
+                // تحديد أحجام جدران مختلفة (أفقية وعمودية) لتعقيد الممرات
+                const isVertical = Math.random() > 0.5;
+                const wWidth = isVertical ? Math.floor(Math.random() * 2 + 1) * 35 : Math.floor(Math.random() * 4 + 2) * 40;
+                const wHeight = isVertical ? Math.floor(Math.random() * 4 + 2) * 40 : Math.floor(Math.random() * 2 + 1) * 35;
+                
+                // وضع عشوائي على كامل مساحة الشاشة الكبيرة
+                const wLeft = Math.floor(Math.random() * (screenW - wWidth - 100)) + 60;
+                const wTop = Math.floor(Math.random() * (screenH - wHeight - 100)) + 60;
+
+                wall.style.width = `${wWidth}px`;
+                wall.style.height = `${wHeight}px`;
+                wall.style.left = `${wLeft}px`;
+                wall.style.top = `${wTop}px`;
+
+                wallsGroup.appendChild(wall);
+            }
+            
+            // وضع الزهرة دائماً في الزاوية المقابلة البعيدة بناءً على حجم الشاشة
+            flower.style.left = `${screenW - 60}px`;
+            flower.style.top = `${screenH - 60}px`;
+
+            // إعادة وضع المخلوق المضيء في مكان عشوائي بالمتاهة الجديدة
+            wisp.style.left = `${Math.floor(Math.random() * (screenW - 100)) + 50}px`;
+            wisp.style.top = `${Math.floor(Math.random() * (screenH - 100)) + 50}px`;
+        }
+
+        // ميكانيكية المخلوق الصغير (يضيء ثانية ويختفي نصف ثانية بشكل مستمر)
+        function runWispBehavior() {
+            setInterval(() => {
+                wisp.style.opacity = '1'; // يظهر ويضيء
+                setTimeout(() => {
+                    wisp.style.opacity = '0'; // يختفي بعد ثانية واحدة
+                }, 1000);
+            }, 1500); // الدورة الكاملة ثانية ظهور + نصف ثانية اختفاء = 1.5 ثانية
+        }
+
+        function move(dir) {
+            if (dir === 'up' && bY > 10) bY -= step;
+            if (dir === 'down' && bY < screenH - 50) bY += step;
+            if (dir === 'left' && bX > 10) { bX -= step; butterfly.style.transform = 'scaleX(-1)'; }
+            if (dir === 'right' && bX < screenW - 50) { bX += step; butterfly.style.transform = 'scaleX(1)'; }
+
+            butterfly.style.left = `${bX}px`;
+            butterfly.style.top = `${bY}px`;
+
+            updateLighting();
+            checkCollisions();
+        }
+
         function sonarPulse() {
+            const walls = document.querySelectorAll('.wall');
             walls.forEach(wall => {
                 wall.classList.add('reveal');
-                setTimeout(() => {
-                    wall.classList.remove('reveal');
-                }, 800); // Walls vanish back into darkness after 800ms
+                setTimeout(() => wall.classList.remove('reveal'), 900);
             });
         }
 
-        // Collision logic
+        // لوجيك فحص الاصطدامات والفوز
         function checkCollisions() {
-            // 1. Check wall hits
+            const bRect = butterfly.getBoundingClientRect();
+            const walls = document.querySelectorAll('.wall');
+
             walls.forEach(wall => {
                 const wRect = wall.getBoundingClientRect();
-                const bRect = butterfly.getBoundingClientRect();
-
-                if (bRect.left < wRect.right &&
-                    bRect.right > wRect.left &&
-                    bRect.top < wRect.bottom &&
-                    bRect.bottom > wRect.top) {
-                    
-                    alert('You crashed into the darkness! Try again.');
-                    resetLevel();
+                if (bRect.left < wRect.right && bRect.right > wRect.left &&
+                    bRect.top < wRect.bottom && bRect.bottom > wRect.top) {
+                    alert('Oops! You hit a wall in the dark maze. Try again!');
+                    resetGamePosition();
                 }
             });
 
-            // 2. Check victory condition (reaching the flower)
             const fRect = flower.getBoundingClientRect();
-            const bRect = butterfly.getBoundingClientRect();
-
-            if (bRect.left < fRect.right &&
-                bRect.right > fRect.left &&
-                bRect.top < fRect.bottom &&
-                bRect.bottom > fRect.top) {
-                
+            if (bRect.left < fRect.right && bRect.right > fRect.left &&
+                bRect.top < fRect.bottom && bRect.bottom > fRect.top) {
                 level++;
-                alert(`Great job! Puzzle solved. Advancing to Level ${level}`);
-                levelStatus.innerText = `Level: ${level}`;
-                nextLevelSetup();
+                alert(`Excellent! Level ${level - 1} cleared. Heading into a deeper maze!`);
+                levelHud.innerText = `LEVEL: ${level}`;
+                resetGamePosition();
+                generateComplexMaze();
             }
         }
 
-        function resetLevel() {
-            butterflyX = 30;
-            butterflyY = 180;
-            butterfly.style.left = butterflyX + 'px';
-            butterfly.style.top = butterflyY + 'px';
+        function resetGamePosition() {
+            bX = 20; bY = 20;
+            butterfly.style.left = `${bX}px`;
+            butterfly.style.top = `${bY}px`;
             updateLighting();
         }
 
-        // Dynamic random level generation
-        function nextLevelSetup() {
-            resetLevel();
-            walls.forEach(wall => {
-                // Dynamically alters the maze setup for every new level
-                wall.style.top = Math.random() * 150 + 'px';
-                wall.style.height = Math.random() * 150 + 150 + 'px';
-            });
-        }
+        // استقبال التحكم عن طريق لوحة المفاتيح (للحواسب)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') move('up');
+            if (e.key === 'ArrowDown') move('down');
+            if (e.key === 'ArrowLeft') move('left');
+            if (e.key === 'ArrowRight') move('right');
+            if (e.key === ' ') { e.preventDefault(); sonarPulse(); }
+        });
 
-        // Initialize flashlight position
+        // ربط أزرار ومناطق اللمس الشاملة (للهواتف والأجهزة اللوحية)
+        document.getElementById('touch-up').addEventListener('touchstart', (e) => { e.preventDefault(); move('up'); });
+        document.getElementById('touch-down').addEventListener('touchstart', (e) => { e.preventDefault(); move('down'); });
+        document.getElementById('touch-left').addEventListener('touchstart', (e) => { e.preventDefault(); move('left'); });
+        document.getElementById('touch-right').addEventListener('touchstart', (e) => { e.preventDefault(); move('right'); });
+        document.getElementById('touch-pulse').addEventListener('touchstart', (e) => { e.preventDefault(); sonarPulse(); });
+
+        // تشغيل اللعبة لأول مرة
+        generateComplexMaze();
         updateLighting();
+        runWispBehavior();
     </script>
 </body>
 </html>
