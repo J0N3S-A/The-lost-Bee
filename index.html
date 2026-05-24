@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Lost Butterfly Puzzle 🦋</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #game-container {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            background: #050505;
+            border: 4px solid #ffd700; /* Regal Gold Border */
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+        /* Butterfly Flashlight (Limited Vision) */
+        #light-mask {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle 80px at 50px 50px, transparent 100%, rgba(0,0,0,0.98) 100%);
+            pointer-events: none;
+            z-index: 10;
+        }
+        #butterfly {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            font-size: 26px;
+            left: 30px;
+            top: 180px;
+            transition: transform 0.1s;
+            z-index: 5;
+            line-height: 30px;
+            text-align: center;
+        }
+        .wall {
+            position: absolute;
+            background: #222;
+            border: 1px solid #333;
+            transition: background 0.5s;
+        }
+        /* When radar pulses, walls glow in gold */
+        .wall.reveal {
+            background: #ffd700 !important;
+            box-shadow: 0 0 10px #ffd700;
+        }
+        #flower {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            font-size: 32px;
+            right: 30px;
+            top: 180px;
+            z-index: 4;
+            line-height: 40px;
+            text-align: center;
+        }
+        #ui-panel {
+            margin-top: 15px;
+            text-align: center;
+        }
+        button {
+            background: #ffd700;
+            color: #111;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #fff;
+        }
+        #info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <h2 style="color: #ffd700; margin-bottom: 10px;">Butterfly Echo Puzzle 🦋</h2>
+    
+    <div id="game-container">
+        <div id="light-mask"></div>
+        <div id="butterfly">🦋</div>
+        <div id="flower">🌺</div>
+        
+        <div class="wall" style="left: 150px; top: 0; width: 40px; height: 250px;"></div>
+        <div class="wall" style="left: 300px; top: 150px; width: 40px; height: 250px;"></div>
+        <div class="wall" style="left: 450px; top: 0; width: 40px; height: 250px;"></div>
+    </div>
+
+    <div id="ui-panel">
+        <button onclick="sonarPulse()">Trigger Echo Pulse (Spacebar)</button>
+        <div id="info">Use Arrow Keys (▲ ▼ ◄ ►) to navigate. Reach the flower without hitting hidden walls!</div>
+        <div id="level-status" style="margin-top: 5px; color: #ffd700; font-weight: bold;">Level: 1</div>
+    </div>
+
+    <script>
+        const butterfly = document.getElementById('butterfly');
+        const mask = document.getElementById('light-mask');
+        const container = document.getElementById('game-container');
+        const walls = document.querySelectorAll('.wall');
+        const flower = document.getElementById('flower');
+        const levelStatus = document.getElementById('level-status');
+
+        let butterflyX = 30;
+        let butterflyY = 180;
+        let level = 1;
+
+        // Update lighting around the butterfly
+        function updateLighting() {
+            mask.style.background = `radial-gradient(circle 75px at ${butterflyX + 15}px ${butterflyY + 15}px, transparent 100%, rgba(0,0,0,0.97) 100%)`;
+        }
+
+        // Handle navigation and actions
+        window.addEventListener('keydown', (e) => {
+            const step = 15;
+            if (e.key === 'ArrowUp' && butterflyY > 0) butterflyY -= step;
+            if (e.key === 'ArrowDown' && butterflyY < 370) butterflyY += step;
+            if (e.key === 'ArrowLeft' && butterflyX > 0) { butterflyX -= step; butterfly.style.transform = 'scaleX(-1)'; }
+            if (e.key === 'ArrowRight' && butterflyX < 570) { butterflyX += step; butterfly.style.transform = 'scaleX(1)'; }
+            
+            if (e.key === ' ') {
+                e.preventDefault(); // Prevent page scrolling
+                sonarPulse();
+            }
+
+            butterfly.style.left = butterflyX + 'px';
+            butterfly.style.top = butterflyY + 'px';
+            
+            updateLighting();
+            checkCollisions();
+        });
+
+        // Echo Pulse feature: temporarily reveals the maze structure
+        function sonarPulse() {
+            walls.forEach(wall => {
+                wall.classList.add('reveal');
+                setTimeout(() => {
+                    wall.classList.remove('reveal');
+                }, 800); // Walls vanish back into darkness after 800ms
+            });
+        }
+
+        // Collision logic
+        function checkCollisions() {
+            // 1. Check wall hits
+            walls.forEach(wall => {
+                const wRect = wall.getBoundingClientRect();
+                const bRect = butterfly.getBoundingClientRect();
+
+                if (bRect.left < wRect.right &&
+                    bRect.right > wRect.left &&
+                    bRect.top < wRect.bottom &&
+                    bRect.bottom > wRect.top) {
+                    
+                    alert('You crashed into the darkness! Try again.');
+                    resetLevel();
+                }
+            });
+
+            // 2. Check victory condition (reaching the flower)
+            const fRect = flower.getBoundingClientRect();
+            const bRect = butterfly.getBoundingClientRect();
+
+            if (bRect.left < fRect.right &&
+                bRect.right > fRect.left &&
+                bRect.top < fRect.bottom &&
+                bRect.bottom > fRect.top) {
+                
+                level++;
+                alert(`Great job! Puzzle solved. Advancing to Level ${level}`);
+                levelStatus.innerText = `Level: ${level}`;
+                nextLevelSetup();
+            }
+        }
+
+        function resetLevel() {
+            butterflyX = 30;
+            butterflyY = 180;
+            butterfly.style.left = butterflyX + 'px';
+            butterfly.style.top = butterflyY + 'px';
+            updateLighting();
+        }
+
+        // Dynamic random level generation
+        function nextLevelSetup() {
+            resetLevel();
+            walls.forEach(wall => {
+                // Dynamically alters the maze setup for every new level
+                wall.style.top = Math.random() * 150 + 'px';
+                wall.style.height = Math.random() * 150 + 150 + 'px';
+            });
+        }
+
+        // Initialize flashlight position
+        updateLighting();
+    </script>
+</body>
+</html>
