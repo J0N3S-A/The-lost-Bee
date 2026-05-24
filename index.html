@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Butterfly Echo: Infinite Maze 🦋</title>
+    <title>Shadow Butterfly: Echo Chase 🦋</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,293 +11,367 @@
             padding: 0;
             user-select: none;
             -webkit-user-select: none;
+            touch-action: none;
         }
         body {
-            background-color: #050505;
+            background-color: #030303;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-            position: relative;
         }
         
-        /* جعل منطقة اللعبة تغطي كامل الشاشة */
         #game-container {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: #020202;
+            background: #010101;
             overflow: hidden;
         }
 
-        /* قناع الإضاءة الديناميكي حول الفراشة */
+        /* قناع الرؤية المظلم المحيط بالفراشة */
         #light-mask {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle 90px at 0px 0px, transparent 100%, rgba(0,0,0,0.99) 100%);
+            background: radial-gradient(circle 100px at 0px 0px, transparent 100%, rgba(0,0,0,1) 100%);
             pointer-events: none;
             z-index: 10;
         }
 
-        #butterfly {
-            position: absolute;
-            width: 34px;
-            height: 34px;
-            font-size: 30px;
-            left: 20px;
-            top: 20px;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.1s;
-        }
-
-        /* الجدران المعقدة للمتاهة */
-        .wall {
-            position: absolute;
-            background: #111;
-            border: 1px solid #1a1a1a;
-            transition: background 0.4s, box-shadow 0.4s;
-        }
-        .wall.reveal {
-            background: #ffd700 !important;
-            box-shadow: 0 0 15px #ffd700;
-        }
-
-        #flower {
+        /* الفراشة الحية وتأثير رفرفة الأجنحة */
+        #butterfly-wrapper {
             position: absolute;
             width: 40px;
             height: 40px;
-            font-size: 34px;
-            right: 35px;
-            bottom: 35px;
-            z-index: 4;
+            z-index: 5;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 32px;
+        }
+        .wing-flap {
+            animation: flap 0.15s infinite alternate ease-in-out;
+        }
+        @keyframes flap {
+            0% { transform: scaleX(1); }
+            100% { transform: scaleX(0.3); }
         }
 
-        /* المخلوق الصغير المضيء الغامض */
-        #wisp {
+        /* الحشرة الخطيرة المطاردة والوميض */
+        #hunter-bug {
             position: absolute;
-            width: 25px;
-            height: 25px;
-            font-size: 20px;
+            width: 35px;
+            height: 35px;
+            font-size: 28px;
             z-index: 6;
+            transform: translate(-50%, -50%);
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
-            filter: drop-shadow(0 0 8px #00ffff);
+            filter: drop-shadow(0 0 10px #ff3333);
             transition: opacity 0.2s ease-in-out;
+            pointer-events: none;
         }
 
-        /* لوحة البيانات العلوية (الملكية) */
-        #ui-overlay {
+        /* الجدران الملكية المظلمة */
+        .wall {
+            position: absolute;
+            background: #111;
+            border: 2px solid #1a1a1a;
+            border-radius: 6px;
+            transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+        .wall.reveal {
+            background: #ffd700 !important;
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+        }
+
+        /* الزهرة الهدف */
+        #flower {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            font-size: 38px;
+            z-index: 4;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 8px #ff69b4);
+            animation: float 2s infinite alternate ease-in-out;
+        }
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) translateY(0px); }
+            100% { transform: translate(-50%, -50%) translateY(-8px); }
+        }
+
+        /* نقاط الطاقة المتناثرة (اللقاح) */
+        .pollen {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ffd700;
+            border-radius: 50%;
+            z-index: 3;
+            box-shadow: 0 0 8px #ffd700;
+        }
+
+        /* لوحة البيانات العلوية المتطورة HUD */
+        #hud {
             position: absolute;
             top: 15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 15;
-            background: rgba(0, 0, 0, 0.75);
-            padding: 8px 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 10px 25px;
             border: 2px solid #ffd700;
-            border-radius: 20px;
+            border-radius: 30px;
             display: flex;
-            gap: 20px;
+            gap: 25px;
             font-weight: bold;
             pointer-events: none;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-        }
-        .hud-item {
-            color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
             font-size: 14px;
             letter-spacing: 1px;
         }
-
-        /* أزرار اللمس الشفافة المخفية للتحكم اللمسي الكامل */
-        .touch-zone {
-            position: absolute;
-            z-index: 12;
-            background: rgba(255, 255, 255, 0.01); /* غير مرئية لكنها قابلة للمس */
-        }
-        #touch-up    { top: 0; left: 25%; width: 50%; height: 25%; }
-        #touch-down  { bottom: 0; left: 25%; width: 50%; height: 25%; }
-        #touch-left  { top: 25%; left: 0; width: 25%; height: 50%; }
-        #touch-right { top: 25%; right: 0; width: 25%; height: 50%; }
-        #touch-pulse { top: 25%; left: 25%; width: 50%; height: 50%; } /* النقر في المنتصف يطلق النبضة */
+        .hud-val { color: #ffd700; }
+        .danger-alert { color: #ff3333; animation: blink 0.5s infinite alternate; display: none; }
+        @keyframes blink { 0% { opacity: 0.2; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="ui-overlay">
-        <div class="hud-item" id="level-hud">LEVEL: 1</div>
-        <div class="hud-item">TAP SIDES TO MOVE | CENTER TO ECHO</div>
+    <div id="hud">
+        <div>SCORE: <span id="score-val" class="hud-val">0</span></div>
+        <div>LEVEL: <span id="level-val" class="hud-val">1</span></div>
+        <div id="danger" class="danger-alert">⚠️ BUG IS CLOSING IN!</div>
     </div>
 
     <div id="game-container">
         <div id="light-mask"></div>
-        <div id="butterfly">🦋</div>
-        <div id="wisp">✨</div>
+        <div id="butterfly-wrapper"><span class="wing-flap">🦋</span></div>
+        <div id="hunter-bug">🦂</div>
         <div id="flower">🌸</div>
         <div id="walls-group"></div>
+        <div id="pollen-group"></div>
     </div>
 
-    <div class="touch-zone" id="touch-up"></div>
-    <div class="touch-zone" id="touch-down"></div>
-    <div class="touch-zone" id="touch-left"></div>
-    <div class="touch-zone" id="touch-right"></div>
-    <div class="touch-zone" id="touch-pulse"></div>
-
     <script>
-        const butterfly = document.getElementById('butterfly');
-        const mask = document.getElementById('light-mask');
         const container = document.getElementById('game-container');
-        const wallsGroup = document.getElementById('walls-group');
+        const mask = document.getElementById('light-mask');
+        const butterfly = document.getElementById('butterfly-wrapper');
+        const hunter = document.getElementById('hunter-bug');
         const flower = document.getElementById('flower');
-        const wisp = document.getElementById('wisp');
-        const levelHud = document.getElementById('level-hud');
+        const wallsGroup = document.getElementById('walls-group');
+        const pollenGroup = document.getElementById('pollen-group');
+        
+        const scoreVal = document.getElementById('score-val');
+        const levelVal = document.getElementById('level-val');
+        const dangerAlert = document.getElementById('danger');
 
-        let bX = 20, bY = 20;
-        let level = 1;
-        let screenW = window.innerWidth;
-        let screenH = window.innerHeight;
-        const step = 20; // حجم خطوة الحركة
+        let bX = 50, bY = 50;       // مكان الفراشة الحالية
+        let targetX = 50, targetY = 50; // مكان الإصبع/الماوس المراد الذهاب إليه
+        let hX = 300, hY = 300;     // مكان الحشرة الصيادة
+        let score = 0, level = 1;
+        let screenW = window.innerWidth, screenH = window.innerHeight;
+        
+        let bugVisible = false;
+        let lastTap = 0;
 
-        // إعادة ضبط الأبعاد عند تغيير حجم الشاشة (دوران الهاتف)
-        window.addEventListener('resize', () => {
-            screenW = window.innerWidth;
-            screenH = window.innerHeight;
-            generateComplexMaze();
-        });
-
-        function updateLighting() {
-            mask.style.background = `radial-gradient(circle 95px at ${bX + 17}px ${bY + 17}px, transparent 100%, rgba(0,0,0,0.99) 100%)`;
-        }
-
-        // بناء متاهة أكثر تعقيداً وأكبر حجماً بناءً على أبعاد الشاشة الحالية
-        function generateComplexMaze() {
-            wallsGroup.innerHTML = ''; // تنظيف المتاهة القديمة
+        // توليد المتاهة المعقدة واللقاح الذهبي
+        function initLevel() {
+            wallsGroup.innerHTML = '';
+            pollenGroup.innerHTML = '';
             
-            // تحديد مسار آمن للفراشة والزهرة أولاً حتى لا تنغلق المتاهة بالكامل
-            const numWalls = Math.floor((screenW * screenH) / 22000) + (level * 2); 
-            
+            // وضع الأهداف في زوايا متباعدة ديناميكياً
+            bX = 50; bY = 50;
+            targetX = 50; targetY = 50;
+            butterfly.style.left = bX + 'px';
+            butterfly.style.top = bY + 'px';
+
+            flower.style.left = (screenW - 60) + 'px';
+            flower.style.top = (screenH - 60) + 'px';
+
+            hX = screenW / 2; hY = screenH / 2;
+            hunter.style.left = hX + 'px';
+            hunter.style.top = hY + 'px';
+
+            // توليد جدران متاهة معقدة وضخمة
+            const numWalls = Math.floor((screenW * screenH) / 20000) + (level * 2);
             for (let i = 0; i < numWalls; i++) {
                 const wall = document.createElement('div');
                 wall.className = 'wall';
+                const isVert = Math.random() > 0.5;
+                const w = isVert ? 40 : Math.random() * 150 + 100;
+                const h = isVert ? Math.random() * 150 + 100 : 40;
                 
-                // تحديد أحجام جدران مختلفة (أفقية وعمودية) لتعقيد الممرات
-                const isVertical = Math.random() > 0.5;
-                const wWidth = isVertical ? Math.floor(Math.random() * 2 + 1) * 35 : Math.floor(Math.random() * 4 + 2) * 40;
-                const wHeight = isVertical ? Math.floor(Math.random() * 4 + 2) * 40 : Math.floor(Math.random() * 2 + 1) * 35;
+                const x = Math.random() * (screenW - w - 120) + 60;
+                const y = Math.random() * (screenH - h - 120) + 60;
                 
-                // وضع عشوائي على كامل مساحة الشاشة الكبيرة
-                const wLeft = Math.floor(Math.random() * (screenW - wWidth - 100)) + 60;
-                const wTop = Math.floor(Math.random() * (screenH - wHeight - 100)) + 60;
-
-                wall.style.width = `${wWidth}px`;
-                wall.style.height = `${wHeight}px`;
-                wall.style.left = `${wLeft}px`;
-                wall.style.top = `${wTop}px`;
-
+                wall.style.width = w + 'px';
+                wall.style.height = h + 'px';
+                wall.style.left = x + 'px';
+                wall.style.top = y + 'px';
                 wallsGroup.appendChild(wall);
             }
-            
-            // وضع الزهرة دائماً في الزاوية المقابلة البعيدة بناءً على حجم الشاشة
-            flower.style.left = `${screenW - 60}px`;
-            flower.style.top = `${screenH - 60}px`;
 
-            // إعادة وضع المخلوق المضيء في مكان عشوائي بالمتاهة الجديدة
-            wisp.style.left = `${Math.floor(Math.random() * (screenW - 100)) + 50}px`;
-            wisp.style.top = `${Math.floor(Math.random() * (screenH - 100)) + 50}px`;
+            // توليد حبوب اللقاح الذهبية للنقاط
+            for (let i = 0; i < 15; i++) {
+                const pol = document.createElement('div');
+                pol.className = 'pollen';
+                pol.style.left = (Math.random() * (screenW - 60) + 30) + 'px';
+                pol.style.top = (Math.random() * (screenH - 60) + 30) + 'px';
+                pollenGroup.appendChild(pol);
+            }
         }
 
-        // ميكانيكية المخلوق الصغير (يضيء ثانية ويختفي نصف ثانية بشكل مستمر)
-        function runWispBehavior() {
-            setInterval(() => {
-                wisp.style.opacity = '1'; // يظهر ويضيء
-                setTimeout(() => {
-                    wisp.style.opacity = '0'; // يختفي بعد ثانية واحدة
-                }, 1000);
-            }, 1500); // الدورة الكاملة ثانية ظهور + نصف ثانية اختفاء = 1.5 ثانية
+        // تتبع حركة الإصبع أو الماوس مباشرة بسلاسة مطلقة
+        function handleMove(e) {
+            let clientX, clientY;
+            if (e.touches && e.touches[0]) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            targetX = clientX;
+            targetY = clientY;
         }
 
-        function move(dir) {
-            if (dir === 'up' && bY > 10) bY -= step;
-            if (dir === 'down' && bY < screenH - 50) bY += step;
-            if (dir === 'left' && bX > 10) { bX -= step; butterfly.style.transform = 'scaleX(-1)'; }
-            if (dir === 'right' && bX < screenW - 50) { bX += step; butterfly.style.transform = 'scaleX(1)'; }
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove, { passive: false });
 
-            butterfly.style.left = `${bX}px`;
-            butterfly.style.top = `${bY}px`;
-
-            updateLighting();
-            checkCollisions();
-        }
+        // الضغط المزدوج (Double Tap) لإطلاق نبضة الرادار الكاشفة للمتاهة
+        window.addEventListener('touchstart', (e) => {
+            let currentTime = new Date().getTime();
+            let tapLength = currentTime - lastTap;
+            if (tapLength < 250 && tapLength > 0) {
+                sonarPulse();
+            }
+            lastTap = currentTime;
+        });
+        window.addEventListener('keydown', (e) => { if (e.key === ' ') sonarPulse(); });
 
         function sonarPulse() {
-            const walls = document.querySelectorAll('.wall');
-            walls.forEach(wall => {
-                wall.classList.add('reveal');
-                setTimeout(() => wall.classList.remove('reveal'), 900);
+            document.querySelectorAll('.wall').forEach(w => {
+                w.classList.add('reveal');
+                setTimeout(() => w.classList.remove('reveal'), 1000);
             });
         }
 
-        // لوجيك فحص الاصطدامات والفوز
-        function checkCollisions() {
-            const bRect = butterfly.getBoundingClientRect();
-            const walls = document.querySelectorAll('.wall');
+        // سلوك وميض الحشرة الدقيق (تضيء ثانية وتختفي نصف ثانية)
+        setInterval(() => {
+            bugVisible = true;
+            hunter.style.opacity = '1';
+            setTimeout(() => {
+                bugVisible = false;
+                hunter.style.opacity = '0';
+            }, 1000);
+        }, 1500);
 
-            walls.forEach(wall => {
+        // حلقة اللعبة الأساسية (Game Loop) لتحديث الحركات والفيزياء 60 إطار بالثانية
+        function update() {
+            // 1. حركة الفراشة الانسيابية باتجاه الإصبع (تأثير فيزيائي ناعم الملمس)
+            let dx = targetX - bX;
+            let dy = targetY - bY;
+            bX += dx * 0.12; // سرعة تجاوب الفراشة
+            bY += dy * 0.12;
+            
+            butterfly.style.left = bX + 'px';
+            butterfly.style.top = bY + 'px';
+            
+            // تدوير اتجاه الفراشة برمجياً حسب حركة الإصبع
+            if (Math.abs(dx) > 2) {
+                butterfly.style.transform = `translate(-50%, -50%) scaleX(${dx > 0 ? 1 : -1})`;
+            }
+
+            // تحديث كشاف الإضاءة حول الفراشة
+            mask.style.background = `radial-gradient(circle 105px at ${bX}px ${bY}px, transparent 100%, rgba(0,0,0,0.99) 100%)`;
+
+            // 2. ذكاء اصطناعي لملاحقة الحشرة الخطرة للفراشة
+            let hDx = bX - hX;
+            let hDy = bY - hY;
+            let dist = Math.sqrt(hDx*hDx + hDy*hDy);
+            
+            // الحشرة تتحرك نحو الفراشة دائماً (تزداد سرعتها مع تقدم المستويات)
+            let speed = 1.3 + (level * 0.2); 
+            if (dist > 5) {
+                hX += (hDx / dist) * speed;
+                hY += (hDy / dist) * speed;
+                hunter.style.left = hX + 'px';
+                hunter.style.top = hY + 'px';
+            }
+
+            // تفعيل التحذير الخطر إذا اقتربت الحشرة جداً منك في الظلام
+            dangerAlert.style.display = (dist < 180 && !bugVisible) ? 'block' : 'none';
+
+            // 3. فحص الاصطدامات (الجدران، الحشرة، اللقاح، الفوز)
+            checkCollisions(dist);
+
+            requestAnimationFrame(update);
+        }
+
+        function checkCollisions(distToBug) {
+            // اصطدام بالحشرة الخطرة (خسارة)
+            if (distToBug < 25) {
+                alert(`Game Over! The toxic bug caught you. Final Score: ${score}`);
+                score = 0; level = 1;
+                scoreVal.innerText = score; levelVal.innerText = level;
+                initLevel();
+                return;
+            }
+
+            // اصطدام بالجدران المظلمة (خسارة)
+            const bRect = butterfly.getBoundingClientRect();
+            document.querySelectorAll('.wall').forEach(wall => {
                 const wRect = wall.getBoundingClientRect();
                 if (bRect.left < wRect.right && bRect.right > wRect.left &&
                     bRect.top < wRect.bottom && bRect.bottom > wRect.top) {
-                    alert('Oops! You hit a wall in the dark maze. Try again!');
-                    resetGamePosition();
+                    alert('You crashed into a hidden wall! Stay focused.');
+                    initLevel();
                 }
             });
 
+            // جمع حبوب اللقاح الذهبية لزيادة السكور
+            document.querySelectorAll('.pollen').forEach(p => {
+                const pRect = p.getBoundingClientRect();
+                if (bRect.left < pRect.right && bRect.right > pRect.left &&
+                    bRect.top < pRect.bottom && bRect.bottom > pRect.top) {
+                    p.remove();
+                    score += 10;
+                    scoreVal.innerText = score;
+                }
+            });
+
+            // الوصول للزهرة (الفوز والانتقال لمستوى أعقد)
             const fRect = flower.getBoundingClientRect();
             if (bRect.left < fRect.right && bRect.right > fRect.left &&
                 bRect.top < fRect.bottom && bRect.bottom > fRect.top) {
                 level++;
-                alert(`Excellent! Level ${level - 1} cleared. Heading into a deeper maze!`);
-                levelHud.innerText = `LEVEL: ${level}`;
-                resetGamePosition();
-                generateComplexMaze();
+                score += 100; // بونص الفوز بالمستوى
+                scoreVal.innerText = score;
+                levelVal.innerText = level;
+                alert(`Fantastic! Level ${level-1} Completed. The bug is getting faster!`);
+                initLevel();
             }
         }
 
-        function resetGamePosition() {
-            bX = 20; bY = 20;
-            butterfly.style.left = `${bX}px`;
-            butterfly.style.top = `${bY}px`;
-            updateLighting();
-        }
-
-        // استقبال التحكم عن طريق لوحة المفاتيح (للحواسب)
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') move('up');
-            if (e.key === 'ArrowDown') move('down');
-            if (e.key === 'ArrowLeft') move('left');
-            if (e.key === 'ArrowRight') move('right');
-            if (e.key === ' ') { e.preventDefault(); sonarPulse(); }
+        window.addEventListener('resize', () => {
+            screenW = window.innerWidth; screenH = window.innerHeight;
+            initLevel();
         });
 
-        // ربط أزرار ومناطق اللمس الشاملة (للهواتف والأجهزة اللوحية)
-        document.getElementById('touch-up').addEventListener('touchstart', (e) => { e.preventDefault(); move('up'); });
-        document.getElementById('touch-down').addEventListener('touchstart', (e) => { e.preventDefault(); move('down'); });
-        document.getElementById('touch-left').addEventListener('touchstart', (e) => { e.preventDefault(); move('left'); });
-        document.getElementById('touch-right').addEventListener('touchstart', (e) => { e.preventDefault(); move('right'); });
-        document.getElementById('touch-pulse').addEventListener('touchstart', (e) => { e.preventDefault(); sonarPulse(); });
-
-        // تشغيل اللعبة لأول مرة
-        generateComplexMaze();
-        updateLighting();
-        runWispBehavior();
+        // انطلاق اللعبة
+        initLevel();
+        requestAnimationFrame(update);
     </script>
 </body>
 </html>
